@@ -18,6 +18,11 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
   const [selectedImage, setSelectedImage] = useState<Record<string, number>>({});
   const [expandedPromos, setExpandedPromos] = useState<Record<string, boolean>>({});
 
+  // Helper function to filter out empty/invalid images
+  const getValidImages = (images: string[] | undefined) => {
+    return images?.filter(img => img && img.trim() !== '') || [];
+  };
+
   if (productEntries.length === 0) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
@@ -64,54 +69,63 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Product Image */}
               <div className="flex flex-col items-center space-y-4 w-full min-w-0">
-                {product.images && product.images.length > 0 && (
-                  <div className="relative aspect-square w-full max-w-[280px] sm:max-w-[320px] overflow-hidden">
-                    <Image
-                      src={product.images[selectedImage[store] || 0]}
-                      alt={product.name || 'Product image'}
-                      fill
-                      className="object-contain rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
-                      sizes="(max-width: 480px) 280px, (max-width: 768px) 320px, (max-width: 1200px) 40vw, 33vw"
-                      onClick={() => window.open(product.images[selectedImage[store] || 0], '_blank')}
-                      onError={(e) => {
-                        console.error('Image failed to load:', product.images[selectedImage[store] || 0]);
-                        e.currentTarget.style.display = 'none';
-                      }}
-                      priority={false}
-                      unoptimized
-                    />
-                  </div>
-                )}
-                
-                {product.images && product.images.length > 1 && (
-                  <div className="w-full max-w-[280px] sm:max-w-[320px]">
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400" 
-                         style={{ scrollbarWidth: 'thin' }}>
-                      {product.images.map((image, index) => (
-                        <div 
-                          key={index} 
-                          className={`relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden rounded border ${
-                            (selectedImage[store] || 0) === index ? 'ring-2 ring-blue-500' : ''
-                          }`}
-                          onClick={() => setSelectedImage(prev => ({ ...prev, [store]: index }))}
-                        >
-                          <Image
-                            src={image}
-                            alt={`${product.name} ${index + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 48px, 56px"
-                            onError={(e) => {
-                              console.error('Thumbnail failed to load:', image);
-                              e.currentTarget.style.display = 'none';
-                            }}
-                            unoptimized
-                          />
-                        </div>
-                      ))}
+                {(() => {
+                  const validImages = getValidImages(product.images);
+                  if (validImages.length === 0) return null;
+                  
+                  const imageSrc = validImages[selectedImage[store] || 0];
+                  return (
+                    <div className="relative aspect-square w-full max-w-[280px] sm:max-w-[320px] overflow-hidden">
+                      <Image
+                        src={imageSrc}
+                        alt={product.name || 'Product image'}
+                        fill
+                        className="object-contain rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                        sizes="(max-width: 480px) 280px, (max-width: 768px) 320px, (max-width: 1200px) 40vw, 33vw"
+                        onClick={() => window.open(imageSrc, '_blank')}
+                        onError={(e) => {
+                          console.error('Image failed to load:', imageSrc);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        priority={false}
+                        unoptimized
+                      />
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
+                
+                {(() => {
+                  const validImages = getValidImages(product.images);
+                  return validImages.length > 1 && (
+                    <div className="w-full max-w-[280px] sm:max-w-[320px]">
+                      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400" 
+                           style={{ scrollbarWidth: 'thin' }}>
+                        {validImages.map((image, index) => (
+                          <div 
+                            key={index} 
+                            className={`relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden rounded border ${
+                              (selectedImage[store] || 0) === index ? 'ring-2 ring-blue-500' : ''
+                            }`}
+                            onClick={() => setSelectedImage(prev => ({ ...prev, [store]: index }))}
+                          >
+                            <Image
+                              src={image}
+                              alt={`${product.name} ${index + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 48px, 56px"
+                              onError={(e) => {
+                                console.error('Thumbnail failed to load:', image);
+                                e.currentTarget.style.display = 'none';
+                              }}
+                              unoptimized
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Product Details */}
