@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductData } from '@/lib/types';
+import { openPrivateLink } from '@/lib/utils';
 import { ChevronDown, ChevronUp, ExternalLink, ShoppingCart, Star } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -50,16 +51,10 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  asChild
+                  onClick={() => openPrivateLink(product.url)}
                   className="h-10 w-10 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                 >
-                  <a
-                    href={product.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
+                  <ExternalLink className="w-5 h-5" />
                 </Button>
               )}
             </div>
@@ -82,7 +77,7 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                         fill
                         className="object-contain rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
                         sizes="(max-width: 480px) 280px, (max-width: 768px) 320px, (max-width: 1200px) 40vw, 33vw"
-                        onClick={() => window.open(imageSrc, '_blank')}
+                        onClick={() => openPrivateLink(imageSrc)}
                         onError={(e) => {
                           console.error('Image failed to load:', imageSrc);
                           e.currentTarget.style.display = 'none';
