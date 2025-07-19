@@ -46,7 +46,7 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="h-10 w-10 p-0 hover:bg-gray-500"
+                  className="h-10 w-10 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                 >
                   <a
                     href={product.url}
@@ -63,15 +63,15 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Product Image */}
-              <div className="space-y-4">
+              <div className="flex flex-col items-center space-y-4 w-full min-w-0">
                 {product.images && product.images.length > 0 && (
-                  <div className="relative aspect-square w-full max-w-sm mx-auto">
+                  <div className="relative aspect-square w-full max-w-[280px] sm:max-w-[320px] overflow-hidden">
                     <Image
                       src={product.images[selectedImage[store] || 0]}
                       alt={product.name || 'Product image'}
                       fill
                       className="object-contain rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      sizes="(max-width: 480px) 280px, (max-width: 768px) 320px, (max-width: 1200px) 40vw, 33vw"
                       onClick={() => window.open(product.images[selectedImage[store] || 0], '_blank')}
                       onError={(e) => {
                         console.error('Image failed to load:', product.images[selectedImage[store] || 0]);
@@ -84,51 +84,54 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                 )}
                 
                 {product.images && product.images.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto">
-                    {product.images.map((image, index) => (
-                      <div 
-                        key={index} 
-                        className={`relative w-16 h-16 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity ${
-                          (selectedImage[store] || 0) === index ? 'ring-2 ring-blue-500' : ''
-                        }`}
-                        onClick={() => setSelectedImage(prev => ({ ...prev, [store]: index }))}
-                      >
-                        <Image
-                          src={image}
-                          alt={`${product.name} ${index + 1}`}
-                          fill
-                          className="object-cover rounded border"
-                          sizes="64px"
-                          onError={(e) => {
-                            console.error('Thumbnail failed to load:', image);
-                            e.currentTarget.style.display = 'none';
-                          }}
-                          unoptimized
-                        />
-                      </div>
-                    ))}
+                  <div className="w-full max-w-[280px] sm:max-w-[320px]">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400" 
+                         style={{ scrollbarWidth: 'thin' }}>
+                      {product.images.map((image, index) => (
+                        <div 
+                          key={index} 
+                          className={`relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden rounded border ${
+                            (selectedImage[store] || 0) === index ? 'ring-2 ring-blue-500' : ''
+                          }`}
+                          onClick={() => setSelectedImage(prev => ({ ...prev, [store]: index }))}
+                        >
+                          <Image
+                            src={image}
+                            alt={`${product.name} ${index + 1}`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 48px, 56px"
+                            onError={(e) => {
+                              console.error('Thumbnail failed to load:', image);
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            unoptimized
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Product Details */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xl font-semibold">{product.name || 'Unknown Product'}</h3>
+              <div className="space-y-4 min-w-0">
+                <div className="min-w-0">
+                  <h3 className="text-xl font-semibold break-words">{product.name || 'Unknown Product'}</h3>
                   {product.brand && (
-                    <p className="text-muted-foreground">by {product.brand}</p>
+                    <p className="text-muted-foreground break-words">by {product.brand}</p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>GTIN: {product.gtin}</span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+                  <span className="break-all">GTIN: {product.gtin}</span>
                 </div>
 
                 {/* Categories */}
                 {product.categories && product.categories.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 max-w-full overflow-hidden">
                     {product.categories.slice(0, 5).map((category, index) => (
-                      <Badge key={index} variant="outline">
+                      <Badge key={index} variant="outline" className="max-w-full truncate">
                         {category}
                       </Badge>
                     ))}
@@ -200,18 +203,20 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => setExpandedPromos(prev => ({ ...prev, [`${store}-promo`]: !prev[`${store}-promo`] }))}
-                        className="h-10 w-10 p-0 hover:bg-gray-500"
+                        className="h-10 w-10 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                       >
                         {expandedPromos[`${store}-promo`] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </Button>
                     </div>
                     <div className="space-y-2">
                       {expandedPromos[`${store}-promo`] && product.promotions.map((promo, index) => (
-                        <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200 overflow-hidden max-w-full">
                           {typeof promo === 'string' ? (
-                            <span className="text-green-800 text-sm">{promo}</span>
+                            <span className="text-green-800 text-sm break-words">{promo}</span>
                           ) : (
-                            <JsonViewer data={promo} />
+                            <div className="max-w-full overflow-hidden">
+                              <JsonViewer data={promo} />
+                            </div>
                           )}
                         </div>
                       ))}

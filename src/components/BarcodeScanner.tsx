@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import { BrowserMultiFormatReader } from '@zxing/library';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import { Camera, Search } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -65,7 +65,7 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
           size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
-          className="absolute right-12 top-1 h-10 w-10 p-0 hover:bg-gray-500"
+          className="absolute right-12 top-1 h-10 w-10 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
         >
           <Camera className="w-5 h-5" />
         </Button>
@@ -74,7 +74,7 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
           variant="ghost"
           size="sm"
           disabled={isLoading || !input.trim()}
-          className="absolute right-1 top-1 h-10 w-10 p-0 hover:bg-gray-500"
+          className="absolute right-1 top-1 h-10 w-10 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
         >
           <Search className="w-5 h-5" />
         </Button>
