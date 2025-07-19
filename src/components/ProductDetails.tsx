@@ -37,7 +37,7 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold">Product Information</h2>
+      <h2 className="text-2xl font-bold">Information</h2>
       
       {productEntries.map(([store, product]) => (
         <Card key={store} className="w-full">
@@ -133,7 +133,7 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
-                  <span className="break-all">GTIN: {product.gtin}</span>
+                  <span className="break-all">ID: {product.id}</span>
                 </div>
 
                 {/* Categories */}
