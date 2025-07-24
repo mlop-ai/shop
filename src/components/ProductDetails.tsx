@@ -3,12 +3,11 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProductData } from '@/lib/types';
+import { ProductData, Promotion } from '@/lib/types';
 import { openPrivateLink } from '@/lib/utils';
 import { ChevronDown, ChevronUp, ExternalLink, ShoppingCart, Star } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
-import JsonViewer from './JsonViewer';
 
 interface ProductDetailsProps {
   products: Record<string, ProductData>;
@@ -22,6 +21,91 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
   // Helper function to filter out empty/invalid images
   const getValidImages = (images: string[] | undefined) => {
     return images?.filter(img => img && img.trim() !== '') || [];
+  };
+
+  // Helper function to format timestamps to readable dates
+  const formatDate = (timestamp: number) => {
+    if (timestamp <= 0) return null;
+    return new Date(timestamp * 1000).toLocaleDateString();
+  };
+
+  // Helper function to render a promotion
+  const renderPromotion = (promo: string | Promotion, index: number) => {
+    if (typeof promo === 'string') {
+      return (
+        <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+          <span className="text-green-800 text-sm break-words">{promo}</span>
+        </div>
+      );
+    }
+
+    return (
+      <div key={index} className="relative p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 space-y-3">
+        {promo.url && (
+          <div className="absolute top-3 right-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => openPrivateLink(promo.url!)}
+              className="h-10 w-10 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+            >
+              <ExternalLink className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
+        
+        {promo.name && (
+          <h5 className="font-semibold text-green-900 break-words pr-12">{promo.name.toUpperCase()}</h5>
+        )}
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          {promo.base && (
+            <div>
+              <span className="font-medium text-green-800">Base: </span>
+              <span className="text-green-700 break-words">{promo.base}</span>
+            </div>
+          )}
+          
+          {promo.loyalty && (
+            <div>
+              <span className="font-medium text-green-800">Loyalty: </span>
+              <span className="text-green-700 break-words">{promo.loyalty}</span>
+            </div>
+          )}
+          
+          {(promo.start && promo.start > 0) && (
+            <div>
+              <span className="font-medium text-green-800">Start: </span>
+              <span className="text-green-700">{formatDate(promo.start)}</span>
+            </div>
+          )}
+          
+          {(promo.end && promo.end > 0) && (
+            <div>
+              <span className="font-medium text-green-800">End: </span>
+              <span className="text-green-700">{formatDate(promo.end)}</span>
+            </div>
+          )}
+        </div>
+
+        {(promo.old_price && promo.old_price > 0) || (promo.new_price && promo.new_price > 0) ? (
+          <div className="flex items-center gap-3 pt-2 border-t border-green-200">
+            {promo.old_price && promo.old_price > 0 && (
+              <div className="text-sm">
+                <span className="font-medium text-green-800">Was: </span>
+                <span className="line-through text-green-600">${promo.old_price.toFixed(2)}</span>
+              </div>
+            )}
+            {promo.new_price && promo.new_price > 0 && (
+              <div className="text-sm">
+                <span className="font-medium text-green-800">Now: </span>
+                <span className="font-bold text-green-900">${promo.new_price.toFixed(2)}</span>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+    );
   };
 
   if (productEntries.length === 0) {
@@ -186,6 +270,13 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                       Stock: {product.quantity}
                     </div>
                   )}
+                  {product.quantity === 0 && (
+                    <div className="border-2 border-red-500 bg-red-50 px-3 py-2 rounded-lg">
+                      <div className="text-sm font-medium text-red-600">
+                        Out of Stock
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Rating */}
@@ -217,18 +308,10 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                         {expandedPromos[`${store}-promo`] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </Button>
                     </div>
-                    <div className="space-y-2">
-                      {expandedPromos[`${store}-promo`] && product.promotions.map((promo, index) => (
-                        <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200 overflow-hidden max-w-full">
-                          {typeof promo === 'string' ? (
-                            <span className="text-green-800 text-sm break-words">{promo}</span>
-                          ) : (
-                            <div className="max-w-full overflow-hidden">
-                              <JsonViewer data={promo} />
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                    <div className="space-y-3">
+                      {expandedPromos[`${store}-promo`] && product.promotions.map((promo, index) => 
+                        renderPromotion(promo, index)
+                      )}
                     </div>
                   </div>
                 )}

@@ -1,3 +1,15 @@
+export interface Promotion {
+  id?: string;
+  name?: string;
+  base?: string;
+  loyalty?: string;
+  url?: string;
+  start?: number;
+  end?: number;
+  old_price?: number;
+  new_price?: number;
+}
+
 export interface GTINRequest {
   gtin: string;
   raw: boolean;
@@ -18,7 +30,7 @@ export interface ProductData {
   unit_price: number;
   unit_of_measure: string;
   discounts: (string | number)[];
-  promotions: (string | Record<string, unknown>)[];
+  promotions: (string | Promotion)[];
   images: string[];
   rating: number;
   rating_count: number;
