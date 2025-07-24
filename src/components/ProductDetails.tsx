@@ -73,17 +73,23 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
             </div>
           )}
           
-          {(promo.start && promo.start > 0) && (
-            <div>
-              <span className="font-medium text-green-800">Start: </span>
-              <span className="text-green-700">{formatDate(promo.start)}</span>
-            </div>
-          )}
-          
-          {(promo.end && promo.end > 0) && (
-            <div>
-              <span className="font-medium text-green-800">End: </span>
-              <span className="text-green-700">{formatDate(promo.end)}</span>
+          {((promo.start && promo.start > 0) || (promo.end && promo.end > 0)) && (
+            <div className="sm:col-span-2">
+              <div className="flex flex-wrap items-center gap-4">
+                {(promo.start && promo.start > 0) && (
+                  <div>
+                    <span className="font-medium text-green-800">Start: </span>
+                    <span className="text-green-700">{formatDate(promo.start)}</span>
+                  </div>
+                )}
+                
+                {(promo.end && promo.end > 0) && (
+                  <div>
+                    <span className="font-medium text-green-800">End: </span>
+                    <span className="text-green-700">{formatDate(promo.end)}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -297,17 +303,15 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
                 {/* Promotions */}
                 {product.promotions && product.promotions.length > 0 && (
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedPromos(prev => ({ ...prev, [`${store}-promo`]: !prev[`${store}-promo`] }))}
+                      className="flex items-center gap-2 h-auto p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+                    >
                       <h4 className="font-medium">Promotions</h4>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpandedPromos(prev => ({ ...prev, [`${store}-promo`]: !prev[`${store}-promo`] }))}
-                        className="h-10 w-10 p-0 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-                      >
-                        {expandedPromos[`${store}-promo`] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                      </Button>
-                    </div>
+                      {expandedPromos[`${store}-promo`] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    </Button>
                     <div className="space-y-3">
                       {expandedPromos[`${store}-promo`] && product.promotions.map((promo, index) => 
                         renderPromotion(promo, index)
