@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BrowserMultiFormatReader } from '@zxing/library';
-import { Camera, Search, Square, Upload, X } from 'lucide-react';
+import { Camera, RotateCcw, Search, Square, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface BarcodeScannerProps {
@@ -16,12 +16,14 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
   const [isScanning, setIsScanning] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const scanIntervalRef = useRef<number | null>(null);
+  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,7 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
 
   const stopScanning = useCallback(() => {
     if (scanIntervalRef.current) {
-      cancelAnimationFrame(scanIntervalRef.current);
+      clearTimeout(scanIntervalRef.current);
       scanIntervalRef.current = null;
     }
     
@@ -51,19 +53,61 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
     setScanError(null);
   }, []);
 
+  const getCameras = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      setCameras(videoDevices);
+    } catch (error) {
+      console.error('Error getting cameras:', error);
+    }
+  }, []);
+
+  const switchCamera = useCallback(() => {
+    if (cameras.length > 1) {
+      const nextIndex = (currentCameraIndex + 1) % cameras.length;
+      setCurrentCameraIndex(nextIndex);
+      if (isScanning) {
+        stopScanning();
+        // Restart scanning with new camera after a brief delay
+        setTimeout(() => startScanning(), 100);
+      }
+    }
+  }, [cameras.length, currentCameraIndex, isScanning, stopScanning]);
+
   const startScanning = useCallback(async () => {
     try {
       setScanError(null);
       setShowCamera(true);
       
-      // Request camera access with mobile-optimized constraints
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment', // Use back camera on mobile
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+      // Get available cameras first
+      await getCameras();
+      
+      let stream;
+      const currentCamera = cameras[currentCameraIndex];
+      
+      try {
+        // Request camera access
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            deviceId: currentCamera ? { exact: currentCamera.deviceId } : undefined,
+            facingMode: currentCamera ? undefined : 'environment'
+          }
+        });
+      } catch {
+        try {
+          // Fallback to basic constraints
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+              deviceId: currentCamera ? { exact: currentCamera.deviceId } : undefined,
+              facingMode: currentCamera ? undefined : 'environment'
+            }
+          });
+        } catch {
+          // Final fallback
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
         }
-      });
+      }
       
       streamRef.current = stream;
       
@@ -80,25 +124,22 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
             readerRef.current = new BrowserMultiFormatReader();
           }
           
-                     // Start continuous scanning
            const scanFrame = async () => {
              if (!videoRef.current || !readerRef.current) return;
              
              try {
                const result = await readerRef.current.decodeFromVideoElement(videoRef.current);
                if (result && result.getText()) {
-                 // Found a barcode!
                  onScan(result.getText());
                  stopScanning();
                  return;
                }
              } catch {
-               // No barcode found in this frame, continue scanning
+               // Continue scanning
              }
              
-             // Schedule next scan
              if (isScanning) {
-               scanIntervalRef.current = requestAnimationFrame(scanFrame);
+               scanIntervalRef.current = setTimeout(scanFrame, 50);
              }
            };
           
@@ -111,7 +152,7 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
       setScanError('Camera access denied. Please allow camera permissions.');
       setShowCamera(false);
     }
-  }, [onScan, isScanning, stopScanning]);
+  }, [onScan, isScanning, stopScanning, getCameras, cameras, currentCameraIndex]);
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -134,7 +175,7 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
       const result = await reader.decodeFromImageUrl(URL.createObjectURL(fileToScan));
       onScan(result.getText());
     } catch {
-      // Silent fail
+      setScanError('No barcode detected. Please try again with a clearer image.');
     }
   }, [onScan]);
 
@@ -156,6 +197,7 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
               className="w-full h-64 sm:h-80 object-cover"
               playsInline
               muted
+              autoPlay
             />
             
             {/* Scanner overlay */}
@@ -170,6 +212,17 @@ export default function BarcodeScanner({ onScan, isLoading }: BarcodeScannerProp
             
             {/* Control buttons */}
             <div className="absolute top-4 right-4 flex gap-2">
+              {cameras.length > 1 && (
+                <Button
+                  onClick={switchCamera}
+                  variant="ghost"
+                  size="sm"
+                  className="bg-black/50 hover:bg-black/70 text-white border-white/20"
+                  title="Switch Camera"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              )}
               <Button
                 onClick={stopScanning}
                 variant="ghost"

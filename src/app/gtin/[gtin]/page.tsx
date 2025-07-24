@@ -109,7 +109,7 @@ export default function GTINPage({ params }: PageProps) {
         <div className="text-center">
           <h1 className="text-4xl font-bold flex items-center justify-center gap-2">
             <QrCode className="w-8 h-8" />
-            Shopping API
+            Shop API
           </h1>
           <p className="text-muted-foreground mt-2">
             Scan barcodes to get information
