@@ -29,6 +29,11 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
     return new Date(timestamp * 1000).toLocaleDateString();
   };
 
+  // Helper function to strip underscores from text
+  const stripUnderscores = (text: string) => {
+    return text.replace(/_/g, ' ');
+  };
+
   // Helper function to render a promotion
   const renderPromotion = (promo: string | Promotion, index: number) => {
     if (typeof promo === 'string') {
@@ -55,21 +60,21 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
         )}
         
         {promo.name && (
-          <h5 className="font-semibold text-green-900 break-words pr-12">{promo.name.toUpperCase()}</h5>
+          <h5 className="font-semibold text-green-900 break-words pr-12">{stripUnderscores(promo.name).toUpperCase()}</h5>
         )}
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {promo.base && (
             <div>
               <span className="font-medium text-green-800">Base: </span>
-              <span className="text-green-700 break-words">{promo.base}</span>
+              <span className="text-green-700 break-words">{stripUnderscores(promo.base)}</span>
             </div>
           )}
           
           {promo.loyalty && (
             <div>
               <span className="font-medium text-green-800">Loyalty: </span>
-              <span className="text-green-700 break-words">{promo.loyalty}</span>
+              <span className="text-green-700 break-words">{stripUnderscores(promo.loyalty)}</span>
             </div>
           )}
           
@@ -98,14 +103,14 @@ export default function ProductDetails({ products }: ProductDetailsProps) {
           <div className="flex items-center gap-3 pt-2 border-t border-green-200">
             {promo.old_price && promo.old_price > 0 && (
               <div className="text-sm">
-                <span className="font-medium text-green-800">Was: </span>
-                <span className="line-through text-green-600">${promo.old_price.toFixed(2)}</span>
+                <span className="font-medium text-green-800">Before: </span>
+                <span className="line-through text-green-600">{promo.old_price.toFixed(2)}</span>
               </div>
             )}
             {promo.new_price && promo.new_price > 0 && (
               <div className="text-sm">
-                <span className="font-medium text-green-800">Now: </span>
-                <span className="font-bold text-green-900">${promo.new_price.toFixed(2)}</span>
+                <span className="font-medium text-green-800">Current: </span>
+                <span className="font-bold text-green-900">{promo.new_price.toFixed(2)}</span>
               </div>
             )}
           </div>
